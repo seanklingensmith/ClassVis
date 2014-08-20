@@ -25,25 +25,26 @@ Usage
 
 ClassVis has two modes: one for showing compile dependencies, and one for showing relationships between the classes. They are both called the same way:
 
-do CompileDeps^ClassVis(clslist,flags,outfile,imgtype,keepfiles)
+	do CompileDeps^ClassVis(clslist,flags,outfile,imgtype,keepfiles)
 
-do Schema^ClassVis(clslist,flags,outfile,imgtype,keepfiles)
+	do Schema^ClassVis(clslist,flags,outfile,imgtype,keepfiles)
 
 the parameters are:
 
-	clslist - The list of starting classes. Related classes will be included based on the flags. This can use the * wildcard (e.g., Sample.*), or be a regular expression contained in '/' characters (e.g., '/Sample\..*/'.).
+	clslist - The list of starting classes. Related classes will be included based on the flags. This can use the * wildcard 
+			  (e.g., Sample.*), or be a regular expression contained in '/' characters (e.g., '/Sample\..*/'.).
 
 	flags - Controls the output. Values are:
 
 		Common: 
-			a - include Persistent classes (default: true)
-			s - include Serial classes (default: false)
-			r - include Registered classes (default: false)
-			d - include DataType and Stream classes (default: false)
+			a - include Persistent classes 
+			s - include Serial classes 
+			r - include Registered classes 
+			d - include DataType and Stream
 		
-			p - include %-classes (default: false)
-			e - include Ensemble System classes (default: false)
-			h - include HealthShare System classes (default: false)
+			p - include %-classes 
+			e - include Ensemble System classes 
+			h - include HealthShare System classes
 		
 		CompileDeps:
 			v - include reverse dependencies (default: false)
@@ -54,7 +55,8 @@ the parameters are:
 	
 	outfile - the path and name of the file to contain the image.
 	
-	imgtype -  the type of image. The default is 'svg'. Valid values are any of the supported formats for GraphViz. See here for the complete list: http://www.graphviz.org/content/output-formats
+	imgtype -  the type of image. The default is 'svg'. Valid values are any of the supported formats for GraphViz. See here 
+			   for the complete list: http://www.graphviz.org/content/output-formats
 
 	keepfiles - This parameter is for debugging only. If 1, do not delete intermediate files. The defualt is 0.
 
