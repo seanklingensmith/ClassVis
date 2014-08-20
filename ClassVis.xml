@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Export generator="Cache" version="25" zv="Cache for UNIX (Apple Mac OS X for x86-64) 2015.1 (Build 173U)" ts="2014-08-20 12:17:19">
-<Routine name="ClassVis" type="MAC" languagemode="0" timestamp="63419,43950.972967"><![CDATA[
+<Export generator="Cache" version="25" zv="Cache for UNIX (Apple Mac OS X for x86-64) 2015.1 (Build 173U)" ts="2014-08-20 14:56:28">
+<Routine name="ClassVis" type="MAC" languagemode="0" timestamp="63419,53785.064815"><![CDATA[
 ClassVis
 	quit
 
@@ -113,7 +113,7 @@ Schema(clslist,flags="",outfile,imgtype="svg",keepfiles=0) public
 			
 			//Is this prop inherited? 
 			//don't include inherited props if superclasses are included
-			if inheritance,cls.Name'=prop.Origin continue
+			if %qstruct("inheritance"),cls.Name'=prop.Origin continue
 			
 			set c2 = $$node(type)
 			if c2 = "" continue
@@ -126,7 +126,7 @@ Schema(clslist,flags="",outfile,imgtype="svg",keepfiles=0) public
 			for i=1:1:cls.ForeignKeys.Count() {
 				set fk = cls.ForeignKeys.GetAt(i)
 				//is fk inherited?
-				if inheritance,cls.Name'=fk.Origin continue
+				if %qstruct("inheritance"),cls.Name'=fk.Origin continue
 				
 				set c2 = $$resolveClass(fk.ReferencedClass,fk.Origin)
 				set c2 = $$node(c2)
@@ -171,7 +171,7 @@ Schema(clslist,flags="",outfile,imgtype="svg",keepfiles=0) public
 			for i=1:1:cls.Methods.Count() {
 				set meth = cls.Methods.GetAt(i)
 				
-				if inheritance,cls.Name'=meth.Origin continue 
+				if %qstruct("inheritance"),cls.Name'=meth.Origin continue 
 				
 				if meth.ReturnType'="" {
 					set c2 = $$node(meth.ReturnType)
