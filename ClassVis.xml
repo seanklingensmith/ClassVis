@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Export generator="Cache" version="25" zv="Cache for UNIX (Apple Mac OS X for x86-64) 2015.1 (Build 173U)" ts="2014-08-20 12:06:22">
-<Routine name="ClassVis" type="MAC" languagemode="0" timestamp="63419,42968.472126"><![CDATA[
+<Export generator="Cache" version="25" zv="Cache for UNIX (Apple Mac OS X for x86-64) 2015.1 (Build 173U)" ts="2014-08-20 12:17:19">
+<Routine name="ClassVis" type="MAC" languagemode="0" timestamp="63419,43950.972967"><![CDATA[
 ClassVis
 	quit
 
@@ -218,8 +218,9 @@ expandList(clslist)
 			for {
 				set c = $order(^rINDEXCLASS(c),1,d)
 				if c="" quit
-				if $match(c,cls) {
-					do node($list(d,2),$$$OriginAttrs)
+				set tmpcls = $list(d,2)
+				if $match(tmpcls,cls) {
+					do node(tmpcls,$$$OriginAttrs)
 				}
 			}
 		} else {
