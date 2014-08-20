@@ -1,0 +1,372 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Export generator="Cache" version="25" zv="Cache for UNIX (Apple Mac OS X for x86-64) 2015.1 (Build 173U)" ts="2014-08-20 11:28:09">
+<Routine name="ClassVis" type="MAC" languagemode="0" timestamp="63419,41196.871792"><![CDATA[
+ClassVis
+	quit
+
+#define Queue(%name) set %queue($increment(%queue))=%name
+#define Dequeue() %queue($increment(%queue,-1)+1)
+
+#define OriginAttrs "fontcolor=""orange"""
+#define PersistentAttrs "color=""blue"""
+#define SerialAttrs "color=""red"""
+#define RegisteredAttrs "color=""purple"""
+#define DatatypeAttrs "color=""green"""
+
+///Recursively calculate compile dependencies
+/// flags:
+///		v - include reverse dependencies (default: false)
+///		a - include Persistent classes (default: true)
+///		s - include Serial classes (default: true)
+///		r - include Registered classes (default: true)
+///		d - include DataType and Stream classes (default: true)
+///		
+///		p - include %-classes (default: false)
+///		e - include Ensemble System classes (default: false)
+///		h - include HealthShare System classes (default: false)
+CompileDeps(clslist,flags="",outfile,imgtype="svg",keepfiles=0) public
+{	
+#define DepTypeLabel(%type) $case(%type,0:"List",1:"SQL",2:"Include",3:"PropCls",4:"Index",5:"Super",6:"CompileAfter",7:"PropDataType",8:"Parent",9:"Projection",10:"FK",11:"Child",12:"SubClass",13:"Query",14:"DependsOn",15:"",16:"Argument")
+
+	new %queue,%nameIdx,%nodes,%links,%files,%qualifiers
+	do parseQualifiers(flags_"asrd")
+	
+	do expandList(clslist)
+	
+	while $g(%queue)>0 {
+		set cls = $$$Dequeue
+		if '##class(%Dictionary.ClassDefinition).%ExistsId(cls) continue
+		set c1=$$node(cls) 
+		if c1="" continue
+		
+		for d=0:1:16 {
+			set c2name = ""
+			for { 
+				set c2name=$order(^oddDEP(cls,d,c2name)) 
+				if c2name="" quit
+				
+				set c2 = $$node(c2name)
+				if c2="" continue
+				
+				set label = $$$DepTypeLabel(d)
+				do link(c1,c2,"label="""_label_"""")
+			}
+			if %qstruct("reverseDeps") {
+				for { 
+					set c2name=$order(^oddDEP(0,cls,d,c2name)) 
+					if c2name="" quit
+					
+					set c2 = $$node(c2name)
+					if c2="" continue
+					
+					set label = $$$DepTypeLabel(d)
+					do link(c1,c2,"color=""red"" label="""_label_"""")
+				}
+			}
+		}
+	}
+	
+	do buildGV(.file)
+	set st=$$callGV(file,outfile,imgtype)
+	
+	if 'keepfiles {
+		do cleanup()
+	}
+}
+
+///Recursively calculate class relationships
+/// Notes: does not look at Projections or Methods/Queries
+/// flags:
+///		a - include Persistent classes (default: true)
+///		s - include Serial classes (default: false)
+///		r - include Registered classes (default: false)
+///		d - include DataType and Stream classes (default: false)
+///		i - include Super Class (default: false)
+///		c - include CompileAfter/DependsOn (default: false)
+///
+///		p - include %-classes (default: false)
+///		e - include Ensemble System classes (default: false)
+///		h - include HealthShare System classes (default: false)
+Schema(clslist,flags="",outfile,imgtype="svg",keepfiles=0) public
+{
+	new %queue,%nameIdx,%nodes,%links,%files,%qstruct
+	
+	set flags = $zconvert(flags,"l")
+	do parseQualifiers(flags_"a")
+	
+	do expandList(clslist)
+	
+	while $g(%queue)>0 {
+		set clsname = $$$Dequeue
+		
+		set cls=##class(%Dictionary.CompiledClass).%OpenId(clsname)
+		if cls="" continue
+		
+		set c1=$$node(clsname) 
+		if c1="" continue
+		
+		//Properties
+		for i=1:1:cls.Properties.Count() {
+			set prop = cls.Properties.GetAt(i)
+			set type = prop.Type
+			if type="" continue
+			
+			//Is this prop inherited? 
+			//don't include inherited props if superclasses are included
+			if inheritance,cls.Name'=prop.Origin continue
+			
+			set c2 = $$node(type)
+			if c2 = "" continue
+			set label = $select(prop.Relationship:"R:",1:"P:")_prop.Name
+			do link(c1,c2,"label="""_label_"""")
+		}
+		
+		//ForeignKey
+		if %qstruct("clsPersistent") {
+			for i=1:1:cls.ForeignKeys.Count() {
+				set fk = cls.ForeignKeys.GetAt(i)
+				//is fk inherited?
+				if inheritance,cls.Name'=fk.Origin continue
+				
+				set c2 = $$resolveClass(fk.ReferencedClass,fk.Origin)
+				set c2 = $$node(c2)
+				if c2 = "" continue
+				do link(c1,c2,"label=""FK:"_fk.Name_"""")
+			}
+		}
+		
+		//Inheritance/DependsOn/CompilAfter
+		if %qstruct("inheritance") {
+			set clslist = cls.Super
+			if clslist'="" {
+				for i=1:1:$length(clslist,",") {
+					set c2 = $$node($piece(clslist,",",i))
+					if c2 = "" continue
+					do link(c2,c1,"dir=back label=""Super""")
+				}
+			}
+		}
+		if %qstruct("dependsOn") {
+			set clslist = cls.DependsOn
+			if clslist'="" {
+				for i=1:1:$length(clslist,",") {
+					set c2 = $$node($piece(clslist,",",i))
+					if c2 = "" continue
+					do link(c2,c1,"dir=back label=""DependsOn""")
+				}
+			}
+			set clslist = cls.CompileAfter
+			if clslist'="" {
+				for i=1:1:$length(clslist,",") {
+					set c2 = $$node($piece(clslist,",",i))
+					if c2 = "" continue
+					do link(c2,c1,"dir=back label=""CompileAfter""")
+				}
+			}
+		}
+		
+		//Method Signature -- too unstable
+		/*
+		if method {
+			for i=1:1:cls.Methods.Count() {
+				set meth = cls.Methods.GetAt(i)
+				
+				if inheritance,cls.Name'=meth.Origin continue 
+				
+				if meth.ReturnType'="" {
+					set c2 = $$node(meth.ReturnType)
+					if c2'="" do link(c1,c2)
+				}
+				
+				set sig = meth.FormalSpecParsed
+				for j=1:1:$listlength(sig) {
+					set type = $listget($listget(sig,j),2)
+					if type="" continue
+					set c2 = $$node(type)
+					if c2'="" do link(c1,c2,"label=""M:"_meth.Name_"""")
+				}
+			}
+		}
+		*/
+	}
+	
+	do buildGV(.file)
+	set st=$$callGV(file,outfile,imgtype)
+	
+	if 'keepfiles {
+		do cleanup()
+	}
+}
+
+expandList(clslist) 
+{
+	for i=1:1:$length(clslist,",") {
+		set cls = $piece(clslist,",",i)
+		if $extract(cls,*)="*" {
+			set cls = $zconvert($extract(cls,1,*-1),"U")
+			set c = ""
+			for {
+				set c = $order(^rINDEXCLASS(c),1,d)
+				if c="" quit
+				if $extract(c,1,$length(cls))=cls {
+					do node($list(d,2),$$$OriginAttrs)
+				}
+			}
+		} elseif $e(cls,1)="/",$e(cls,*)="/" {
+			set cls = $extract(cls,2,*-1)
+			set c = ""
+			for {
+				set c = $order(^rINDEXCLASS(c),1,d)
+				if c="" quit
+				if $match(c,cls) {
+					do node($list(d,2),$$$OriginAttrs)
+				}
+			}
+		} else {
+			do node(cls,$$$OriginAttrs)
+		}
+	}
+}
+parseQualifiers(flags)
+{
+	#define Flag(%flags,%f) (%flags[%f)&&(%flags'[("-"_%f))
+	set %qstruct("includeEns") = $$$Flag(flags,"e")
+	set %qstruct("includePercent") = $$$Flag(flags,"p")
+	set %qstruct("includeHS") = $$$Flag(flags,"h")
+	
+	set %qstruct("clsPersistent") = $$$Flag(flags,"a")
+	set %qstruct("clsSerial") = $$$Flag(flags,"s")
+	set %qstruct("clsRegistered") = $$$Flag(flags,"r")
+	set %qstruct("clsDatatype") = $$$Flag(flags,"d")
+	
+	set %qstruct("dependsOn") = $$$Flag(flags,"c")
+	set %qstruct("inheritance") = $$$Flag(flags,"i")
+	
+	set %qstruct("reverseDeps")= $$$Flag(flags,"v")
+}
+node(name,attrs="")
+{
+	set idx = $get(%nameIdx(name))
+	if idx'="" {
+		if attrs'="" {
+			set oldattrs = $listget(%nodes(idx),2)
+			if oldattrs'[attrs set $list(%nodes(idx),2)=oldattrs_" "_attrs
+		}
+		quit idx
+	}
+	
+	if '$get(%qstruct("includePercent")),$extract(name)="%" quit ""
+	if '$get(%qstruct("includeEns")),(($extract(name,1,4)="Ens.")||($extract(name,1,7)="EnsLib.")) quit ""
+	if '$get(%qstruct("includeHS")),$extract(name,1,3)="HS." quit ""
+	
+	set clsType = $$sqlgetvalue("select ClassType from %Dictionary.CompiledClass where %Id=?",.sc,name)
+	if clsType="" set clsType="registered"
+	set clsType=$zconvert(clsType,"l")
+	
+	if '$get(%qstruct("clsPersistent")),clsType="persistent" quit ""
+	if '$get(%qstruct("clsSerial")),clsType="serial" quit ""
+	if '$get(%qstruct("clsRegistered")),clsType="registered" quit ""
+	if '$get(%qstruct("clsDatatype")),((clsType="datatype")||(clsType="stream")) quit ""
+	
+	set typeAttrs = $case(clsType,"datatype":$$$DatatypeAttrs,"stream":$$$DatatypeAttrs,"registered":$$$RegisteredAttrs,"serial":$$$SerialAttrs,"persistent":$$$PersistentAttrs,:"")
+	set attrs = $select(attrs="":typeAttrs,1:attrs_" "_typeAttrs)
+	
+	set idx = $increment(%nodes)
+	set %nodes(idx)=$listbuild(name,attrs)
+	
+	set %nameIdx(name)=idx
+	$$$Queue(name)
+	quit idx
+}
+link(n1,n2,attrs="")
+{
+	if (n1=n2)||(n1="")||(n2="") quit 0
+	set idx = $increment(%links)
+	set %links(idx)=$listbuild(n1,n2,attrs)
+	quit idx
+	
+}
+buildGV(file="")
+{
+	set stream = ##class(%Stream.FileCharacter).%New()
+	if file="" {
+		set file = ##class(%File).TempFilename("gv")
+		set %files("gv")=file	
+	}
+	
+	set stream.Filename=file
+	
+	do stream.WriteLine("digraph visualization {")
+	
+	set i=""
+	for {
+		set i=$order(%nodes(i),1,node)
+		if i="" quit
+		set attrs = $list(node,2)
+		do stream.WriteLine("n"_i_" [label="""_$list(node)_""""_$select(attrs="":"",1:" "_attrs)_"];")
+	}
+
+	set i=""
+	for {
+		set i=$order(%links(i),1,link)
+		if i="" quit
+		
+		set attrs=$list(link,3)
+		if attrs'="" set attrs="["_attrs_"]"
+		do stream.WriteLine("n"_$list(link,1)_" -> n"_$list(link,2)_" "_attrs_";")
+	}	
+	do stream.WriteLine("}")
+	do stream.%Save()
+}
+callGV(file,outfile,imgtype="svg")
+{
+	set ret = ""
+	set log = ##class(%File).TempFilename("log")
+	set %files("log")=log
+	set st=$zf(-1,"dot -T"_imgtype_" -o "_outfile_" "_file_" > "_log)
+	quit ret
+}
+cleanup()
+{
+	set i=""
+	for {
+		set i=$order(%files(i),1,f)
+		if i="" quit
+		do ##class(%File).Delete(f)
+	}
+	
+	kill %queue,%nameIdx,%nodes,%links,%files
+}
+
+sqlgetvalue(sql,sc,args...)
+{
+	set stmt = ##class(%SQL.Statement).%New()
+	set sc = stmt.%Prepare(sql)
+	if 'sc quit ""
+	
+	set rs = stmt.%Execute(args...)
+	if rs.%SQLCODE<0 set sc = $System.Status.Error(5001,rs.%Message) quit ""
+	
+	do rs.%Next()
+	set val = rs.%GetData(1)
+	quit val
+}
+
+resolveClass(name,origin)
+{
+	if $extract(name)="%" {
+		if $extract(name,1,9)="%Library." { quit name }
+		else { quit "%Library."_$extract(name,2,*) }
+	} 
+	elseif name["." {
+		quit name
+	}
+	else {
+		set pkg = $piece(origin,".",1,*-1)
+		quit pkg_"."_name
+	}
+	
+	quit ""
+}
+]]></Routine>
+</Export>
