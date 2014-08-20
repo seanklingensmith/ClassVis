@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Export generator="Cache" version="25" zv="Cache for UNIX (Apple Mac OS X for x86-64) 2015.1 (Build 173U)" ts="2014-08-20 11:28:09">
-<Routine name="ClassVis" type="MAC" languagemode="0" timestamp="63419,41196.871792"><![CDATA[
+<Export generator="Cache" version="25" zv="Cache for UNIX (Apple Mac OS X for x86-64) 2015.1 (Build 173U)" ts="2014-08-20 12:06:22">
+<Routine name="ClassVis" type="MAC" languagemode="0" timestamp="63419,42968.472126"><![CDATA[
 ClassVis
 	quit
 
@@ -212,7 +212,7 @@ expandList(clslist)
 					do node($list(d,2),$$$OriginAttrs)
 				}
 			}
-		} elseif $e(cls,1)="/",$e(cls,*)="/" {
+		} elseif $extract(cls,1)="/",$extract(cls,*)="/" {
 			set cls = $extract(cls,2,*-1)
 			set c = ""
 			for {
@@ -323,8 +323,15 @@ callGV(file,outfile,imgtype="svg")
 	set ret = ""
 	set log = ##class(%File).TempFilename("log")
 	set %files("log")=log
-	set st=$zf(-1,"dot -T"_imgtype_" -o "_outfile_" "_file_" > "_log)
+	set gvpath = $get(^ClassVis("gvpath"))
+	
+	set st=$zf(-1,gvpath_"dot -T"_imgtype_" -o "_outfile_" "_file_" > "_log)
 	quit ret
+}
+SetPath(path) public
+{
+	if path="" quit
+	set ^ClassVis("gvpath")=path
 }
 cleanup()
 {
