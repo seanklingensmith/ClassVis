@@ -36,25 +36,25 @@ the parameters are:
 
 	flags - Controls the output. See ShowQualifiers^ClassVis() for details. values are:
 
-	Common:
-		/includeEns - include Ensemble System classes.
-		/includePercent - include %-classes.
-		/includeHS - include HealthShare System classes.
-		/clsPersistent - include Persistent classes.
-		/clsSerial - include Serial classes.
-		/clsRegistered - include Registered classes.
-		/clsDatatype - include Datatype classes.
-		/recurse - recursively include related classes: 
-			- (0) no recursion
-			- (-1) recursively include all classes
-			- (recurse>0) recursively include classes up to a depth of <recurse>
+		Common:
+			/includeEns - include Ensemble System classes.
+			/includePercent - include %-classes.
+			/includeHS - include HealthShare System classes.
+			/clsPersistent - include Persistent classes.
+			/clsSerial - include Serial classes.
+			/clsRegistered - include Registered classes.
+			/clsDatatype - include Datatype classes.
+			/recurse - recursively include related classes: 
+				- (0) no recursion
+				- (-1) recursively include all classes
+				- (recurse>0) recursively include classes up to a depth of <recurse>
 
-	Schema:
-		/dependsOn - include DependsOn/CompileAfter classes.
-		/inheritance - include superclasses.
+		Schema:
+			/dependsOn - include DependsOn/CompileAfter classes.
+			/inheritance - include superclasses.
 
-	CompileDeps:
-		/reverseDeps - include reverse dependencies.
+		CompileDeps:
+			/reverseDeps - include reverse dependencies.
 		
 	outfile - the path and name of the file to contain the image.
 	
