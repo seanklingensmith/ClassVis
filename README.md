@@ -62,18 +62,3 @@ the parameters are:
 			   for the complete list: http://www.graphviz.org/content/output-formats
 
 	keepfiles - This parameter is for debugging only. If 1, do not delete intermediate files. The defualt is 0.
-
-	/includeEns - include Ensemble System classes.
-		/includePercent - include %-classes.
-		/includeHS - include HealthShare System classes.
-		/clsPersistent - include Persistent classes.
-		/clsSerial - include Serial classes.
-		/clsRegistered - include Registered classes.
-		/clsDatatype - include Datatype classes.
-		/dependsOn - include DependsOn/CompileAfter classes (Shecma() only).
-		/inheritance - include superclasses (Schema() only).
-		/reverseDeps - include reverse dependencies (CompileDeps() only).
-		/recurse - recursively include related classes: 
-			- (0) no recursion
-			- (-1) recursively include all classes
-			- (recurse>0) recursively include classes up to a depth of <recurse>
