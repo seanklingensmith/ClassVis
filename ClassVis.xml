@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Export generator="Cache" version="25" zv="Cache for UNIX (Apple Mac OS X for x86-64) 2015.1 (Build 173U)" ts="2014-08-20 14:56:28">
-<Routine name="ClassVis" type="MAC" languagemode="0" timestamp="63419,53785.064815"><![CDATA[
+<Export generator="Cache" version="25" zv="Cache for UNIX (Apple Mac OS X for x86-64) 2015.1 (Build 173U)" ts="2014-08-28 11:09:41">
+<Routine name="ClassVis" type="MAC" languagemode="0" timestamp="63427,39951.321738"><![CDATA[
 ClassVis
 	quit
 
@@ -13,23 +13,14 @@ ClassVis
 #define RegisteredAttrs "color=""purple"""
 #define DatatypeAttrs "color=""green"""
 
-///Recursively calculate compile dependencies
-/// flags:
-///		v - include reverse dependencies (default: false)
-///		a - include Persistent classes (default: true)
-///		s - include Serial classes (default: true)
-///		r - include Registered classes (default: true)
-///		d - include DataType and Stream classes (default: true)
-///		
-///		p - include %-classes (default: false)
-///		e - include Ensemble System classes (default: false)
-///		h - include HealthShare System classes (default: false)
+///Calculate compile dependencies
+///Default flags: /clsPersistent=1 /clsSerial=1 /clsRegistered=1 /clsDatatype=1 /recurse=0
 CompileDeps(clslist,flags="",outfile,imgtype="svg",keepfiles=0) public
 {	
 #define DepTypeLabel(%type) $case(%type,0:"List",1:"SQL",2:"Include",3:"PropCls",4:"Index",5:"Super",6:"CompileAfter",7:"PropDataType",8:"Parent",9:"Projection",10:"FK",11:"Child",12:"SubClass",13:"Query",14:"DependsOn",15:"",16:"Argument")
 
 	new %queue,%nameIdx,%nodes,%links,%files,%qualifiers
-	do parseQualifiers(flags_"asrd")
+	do parseQualifiers("/clsPersistent=1/clsSerial=1/clsRegistered=1/clsDatatype=1/recurse=0"_flags)
 	
 	do expandList(clslist)
 	
@@ -74,25 +65,15 @@ CompileDeps(clslist,flags="",outfile,imgtype="svg",keepfiles=0) public
 	}
 }
 
-///Recursively calculate class relationships
+/// Calculate class relationships
 /// Notes: does not look at Projections or Methods/Queries
-/// flags:
-///		a - include Persistent classes (default: true)
-///		s - include Serial classes (default: false)
-///		r - include Registered classes (default: false)
-///		d - include DataType and Stream classes (default: false)
-///		i - include Super Class (default: false)
-///		c - include CompileAfter/DependsOn (default: false)
-///
-///		p - include %-classes (default: false)
-///		e - include Ensemble System classes (default: false)
-///		h - include HealthShare System classes (default: false)
+/// default flags: /clsPersistent=1 /recurse=-1
 Schema(clslist,flags="",outfile,imgtype="svg",keepfiles=0) public
 {
 	new %queue,%nameIdx,%nodes,%links,%files,%qstruct
 	
 	set flags = $zconvert(flags,"l")
-	do parseQualifiers(flags_"a")
+	do parseQualifiers("/clsPersistent=1/recurse=-1"_flags)
 	
 	do expandList(clslist)
 	
@@ -228,7 +209,61 @@ expandList(clslist)
 		}
 	}
 }
+///		/clsPersistent
+///		/clsSerial
+///		/clsRegistered
+///		/clsDataType
+///		/inheritance
+///		/dependsOn
+///
+///		/includePercent
+///		/includeEns
+///		/includeHS
+///     /recurse
+ShowQualifiers() public
+{
+	write "Common:",!
+	write "	/includeEns - include Ensemble System classes.",!
+	write "	/includePercent - include %-classes.",!
+	write "	/includeHS - include HealthShare System classes.",!
+	write "	/clsPersistent - include Persistent classes.",!
+	write "	/clsSerial - include Serial classes.",!
+	write "	/clsRegistered - include Registered classes.",!
+	write "	/clsDatatype - include Datatype classes.",!
+	write "	/recurse - recursively include related classes: ",!
+	write "		- (0) no recursion",!
+	write "		- (-1) recursively include all classes",!
+	write "		- (recurse>0) recursively include classes up to a depth of <recurse>",!
+	write !,"Schema() only:",!
+	write "	/dependsOn - include DependsOn/CompileAfter classes.",!
+	write "	/inheritance - include superclasses.",!
+	write !,"CompileDeps() only:",!
+	write "	/reverseDeps - include reverse dependencies.",!
+}
 parseQualifiers(flags)
+{
+	#define flags ",includeEns,includePercent,includeHS,clsPersistent,clsSerial,clsRegistered,clsDatatype,dependsOn,inheritance,reverseDeps,recurse,"
+	
+	for i=2:1:$length($$$flags,",")-1 {
+		set f = $piece($$$flags,",",i)
+		set %qstruct(f)=0
+	}
+	set flags = $listfromstring(flags,"/")
+	for i=1:1:$listlength(flags) {
+		set f=$list(flags,i)
+		if f["=" {
+			set v = $piece(f,"=",2)
+			set f = $piece(f,"=",1)
+		} else {
+			set v = 1
+		}
+		
+		if $$$flags[(","_f_",") {
+			set %qstruct(f)=v
+		}
+	}
+}
+parseQualifiers2(flags)
 {
 	#define Flag(%flags,%f) (%flags[%f)&&(%flags'[("-"_%f))
 	set %qstruct("includeEns") = $$$Flag(flags,"e")

@@ -34,25 +34,28 @@ the parameters are:
 	clslist - The list of starting classes. Related classes will be included based on the flags. This can use the * wildcard 
 			  (e.g., Sample.*), or be a regular expression contained in '/' characters (e.g., '/Sample\..*/'.).
 
-	flags - Controls the output. Values are:
+	flags - Controls the output. See ShowQualifiers^ClassVis() for details. values are:
 
-		Common: 
-			a - include Persistent classes 
-			s - include Serial classes 
-			r - include Registered classes 
-			d - include DataType and Stream
-		
-			p - include %-classes 
-			e - include Ensemble System classes 
-			h - include HealthShare System classes
-		
-		CompileDeps:
-			v - include reverse dependencies (default: false)
+	Common:
+		/includeEns - include Ensemble System classes.
+		/includePercent - include %-classes.
+		/includeHS - include HealthShare System classes.
+		/clsPersistent - include Persistent classes.
+		/clsSerial - include Serial classes.
+		/clsRegistered - include Registered classes.
+		/clsDatatype - include Datatype classes.
+		/recurse - recursively include related classes: 
+			- (0) no recursion
+			- (-1) recursively include all classes
+			- (recurse>0) recursively include classes up to a depth of <recurse>
 
-		Schema:
-			i - include Super Class (default: false)
-			c - include CompileAfter/DependsOn (default: false)
-	
+	Schema:
+		/dependsOn - include DependsOn/CompileAfter classes.
+		/inheritance - include superclasses.
+
+	CompileDeps:
+		/reverseDeps - include reverse dependencies.
+		
 	outfile - the path and name of the file to contain the image.
 	
 	imgtype -  the type of image. The default is 'svg'. Valid values are any of the supported formats for GraphViz. See here 
@@ -60,3 +63,17 @@ the parameters are:
 
 	keepfiles - This parameter is for debugging only. If 1, do not delete intermediate files. The defualt is 0.
 
+	/includeEns - include Ensemble System classes.
+		/includePercent - include %-classes.
+		/includeHS - include HealthShare System classes.
+		/clsPersistent - include Persistent classes.
+		/clsSerial - include Serial classes.
+		/clsRegistered - include Registered classes.
+		/clsDatatype - include Datatype classes.
+		/dependsOn - include DependsOn/CompileAfter classes (Shecma() only).
+		/inheritance - include superclasses (Schema() only).
+		/reverseDeps - include reverse dependencies (CompileDeps() only).
+		/recurse - recursively include related classes: 
+			- (0) no recursion
+			- (-1) recursively include all classes
+			- (recurse>0) recursively include classes up to a depth of <recurse>
