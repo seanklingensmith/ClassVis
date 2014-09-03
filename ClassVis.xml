@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Export generator="Cache" version="25" zv="Cache for UNIX (Apple Mac OS X for x86-64) 2015.1 (Build 224U)" ts="2014-09-03 10:08:05">
-<Routine name="ClassVis" type="MAC" languagemode="0" timestamp="63433,36115.369642"><![CDATA[
+<Export generator="Cache" version="25" zv="Cache for UNIX (Apple Mac OS X for x86-64) 2015.1 (Build 224U)" ts="2014-09-03 10:46:13">
+<Routine name="ClassVis" type="MAC" languagemode="0" timestamp="63433,38767.787278"><![CDATA[
 ClassVis
 	quit
 
@@ -270,23 +270,6 @@ parseQualifiers(flags)
 	}
 	
 	if %qstruct("recurse")=0 set %qstruct("recurse")=1
-}
-parseQualifiers2(flags)
-{
-	#define Flag(%flags,%f) (%flags[%f)&&(%flags'[("-"_%f))
-	set %qstruct("includeEns") = $$$Flag(flags,"e")
-	set %qstruct("includePercent") = $$$Flag(flags,"p")
-	set %qstruct("includeHS") = $$$Flag(flags,"h")
-	
-	set %qstruct("clsPersistent") = $$$Flag(flags,"a")
-	set %qstruct("clsSerial") = $$$Flag(flags,"s")
-	set %qstruct("clsRegistered") = $$$Flag(flags,"r")
-	set %qstruct("clsDatatype") = $$$Flag(flags,"d")
-	
-	set %qstruct("dependsOn") = $$$Flag(flags,"c")
-	set %qstruct("inheritance") = $$$Flag(flags,"i")
-	
-	set %qstruct("reverseDeps")= $$$Flag(flags,"v")
 }
 node(name,depth,attrs="")
 {
