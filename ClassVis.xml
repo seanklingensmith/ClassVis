@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Export generator="Cache" version="25" zv="Cache for UNIX (Apple Mac OS X for x86-64) 2015.1 (Build 224U)" ts="2014-09-03 10:46:13">
-<Routine name="ClassVis" type="MAC" languagemode="0" timestamp="63433,38767.787278"><![CDATA[
+<Export generator="Cache" version="25" zv="Cache for UNIX (Apple Mac OS X for x86-64) 2015.1 (Build 224U)" ts="2014-09-03 10:48:33">
+<Routine name="ClassVis" type="MAC" languagemode="0" timestamp="63433,38909.280638"><![CDATA[
 ClassVis
 	quit
 
@@ -359,8 +359,11 @@ callGV(file,outfile,imgtype="svg")
 }
 SetPath(path) public
 {
-	if path="" quit
-	set ^ClassVis("gvpath")=path
+	if path="" {
+		kill ^ClassVis("gvpath")
+	} else {
+		set ^ClassVis("gvpath")=path
+	}
 }
 cleanup()
 {
