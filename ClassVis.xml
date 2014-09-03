@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Export generator="Cache" version="25" zv="Cache for UNIX (Apple Mac OS X for x86-64) 2015.1 (Build 173U)" ts="2014-08-28 11:09:41">
-<Routine name="ClassVis" type="MAC" languagemode="0" timestamp="63427,39951.321738"><![CDATA[
+<Export generator="Cache" version="25" zv="Cache for UNIX (Apple Mac OS X for x86-64) 2015.1 (Build 224U)" ts="2014-09-03 10:08:05">
+<Routine name="ClassVis" type="MAC" languagemode="0" timestamp="63433,36115.369642"><![CDATA[
 ClassVis
 	quit
 
@@ -26,8 +26,11 @@ CompileDeps(clslist,flags="",outfile,imgtype="svg",keepfiles=0) public
 	
 	while $g(%queue)>0 {
 		set cls = $$$Dequeue
+		set depth = $list(cls,2)
+		set cls = $list(cls,1)
+		
 		if '##class(%Dictionary.ClassDefinition).%ExistsId(cls) continue
-		set c1=$$node(cls) 
+		set c1=$$node(cls,depth) 
 		if c1="" continue
 		
 		for d=0:1:16 {
@@ -36,7 +39,7 @@ CompileDeps(clslist,flags="",outfile,imgtype="svg",keepfiles=0) public
 				set c2name=$order(^oddDEP(cls,d,c2name)) 
 				if c2name="" quit
 				
-				set c2 = $$node(c2name)
+				set c2 = $$node(c2name,depth+1)
 				if c2="" continue
 				
 				set label = $$$DepTypeLabel(d)
@@ -47,7 +50,7 @@ CompileDeps(clslist,flags="",outfile,imgtype="svg",keepfiles=0) public
 					set c2name=$order(^oddDEP(0,cls,d,c2name)) 
 					if c2name="" quit
 					
-					set c2 = $$node(c2name)
+					set c2 = $$node(c2name,depth+1)
 					if c2="" continue
 					
 					set label = $$$DepTypeLabel(d)
@@ -80,10 +83,13 @@ Schema(clslist,flags="",outfile,imgtype="svg",keepfiles=0) public
 	while $g(%queue)>0 {
 		set clsname = $$$Dequeue
 		
+		set depth = $list(clsname,2)
+		set clsname = $list(clsname,1)
+		
 		set cls=##class(%Dictionary.CompiledClass).%OpenId(clsname)
 		if cls="" continue
 		
-		set c1=$$node(clsname) 
+		set c1=$$node(clsname,depth) 
 		if c1="" continue
 		
 		//Properties
@@ -96,7 +102,7 @@ Schema(clslist,flags="",outfile,imgtype="svg",keepfiles=0) public
 			//don't include inherited props if superclasses are included
 			if %qstruct("inheritance"),cls.Name'=prop.Origin continue
 			
-			set c2 = $$node(type)
+			set c2 = $$node(type,depth+1)
 			if c2 = "" continue
 			set label = $select(prop.Relationship:"R:",1:"P:")_prop.Name
 			do link(c1,c2,"label="""_label_"""")
@@ -110,7 +116,7 @@ Schema(clslist,flags="",outfile,imgtype="svg",keepfiles=0) public
 				if %qstruct("inheritance"),cls.Name'=fk.Origin continue
 				
 				set c2 = $$resolveClass(fk.ReferencedClass,fk.Origin)
-				set c2 = $$node(c2)
+				set c2 = $$node(c2,depth+1)
 				if c2 = "" continue
 				do link(c1,c2,"label=""FK:"_fk.Name_"""")
 			}
@@ -121,7 +127,7 @@ Schema(clslist,flags="",outfile,imgtype="svg",keepfiles=0) public
 			set clslist = cls.Super
 			if clslist'="" {
 				for i=1:1:$length(clslist,",") {
-					set c2 = $$node($piece(clslist,",",i))
+					set c2 = $$node($piece(clslist,",",i),depth+1)
 					if c2 = "" continue
 					do link(c2,c1,"dir=back label=""Super""")
 				}
@@ -131,7 +137,7 @@ Schema(clslist,flags="",outfile,imgtype="svg",keepfiles=0) public
 			set clslist = cls.DependsOn
 			if clslist'="" {
 				for i=1:1:$length(clslist,",") {
-					set c2 = $$node($piece(clslist,",",i))
+					set c2 = $$node($piece(clslist,",",i),depth+1)
 					if c2 = "" continue
 					do link(c2,c1,"dir=back label=""DependsOn""")
 				}
@@ -139,7 +145,7 @@ Schema(clslist,flags="",outfile,imgtype="svg",keepfiles=0) public
 			set clslist = cls.CompileAfter
 			if clslist'="" {
 				for i=1:1:$length(clslist,",") {
-					set c2 = $$node($piece(clslist,",",i))
+					set c2 = $$node($piece(clslist,",",i),depth+1)
 					if c2 = "" continue
 					do link(c2,c1,"dir=back label=""CompileAfter""")
 				}
@@ -190,7 +196,7 @@ expandList(clslist)
 				set c = $order(^rINDEXCLASS(c),1,d)
 				if c="" quit
 				if $extract(c,1,$length(cls))=cls {
-					do node($list(d,2),$$$OriginAttrs)
+					do node($list(d,2),0,$$$OriginAttrs)
 				}
 			}
 		} elseif $extract(cls,1)="/",$extract(cls,*)="/" {
@@ -201,11 +207,11 @@ expandList(clslist)
 				if c="" quit
 				set tmpcls = $list(d,2)
 				if $match(tmpcls,cls) {
-					do node(tmpcls,$$$OriginAttrs)
+					do node(tmpcls,0,$$$OriginAttrs)
 				}
 			}
 		} else {
-			do node(cls,$$$OriginAttrs)
+			do node(cls,0,$$$OriginAttrs)
 		}
 	}
 }
@@ -262,6 +268,8 @@ parseQualifiers(flags)
 			set %qstruct(f)=v
 		}
 	}
+	
+	if %qstruct("recurse")=0 set %qstruct("recurse")=1
 }
 parseQualifiers2(flags)
 {
@@ -280,7 +288,7 @@ parseQualifiers2(flags)
 	
 	set %qstruct("reverseDeps")= $$$Flag(flags,"v")
 }
-node(name,attrs="")
+node(name,depth,attrs="")
 {
 	set idx = $get(%nameIdx(name))
 	if idx'="" {
@@ -291,18 +299,20 @@ node(name,attrs="")
 		quit idx
 	}
 	
-	if '$get(%qstruct("includePercent")),$extract(name)="%" quit ""
-	if '$get(%qstruct("includeEns")),(($extract(name,1,4)="Ens.")||($extract(name,1,7)="EnsLib.")) quit ""
-	if '$get(%qstruct("includeHS")),$extract(name,1,3)="HS." quit ""
+	if %qstruct("recurse")'=-1,depth>%qstruct("recurse") quit ""
+	
+	if '%qstruct("includePercent"),$extract(name)="%" quit ""
+	if '%qstruct("includeEns"),(($extract(name,1,4)="Ens.")||($extract(name,1,7)="EnsLib.")) quit ""
+	if '%qstruct("includeHS"),$extract(name,1,3)="HS." quit ""
 	
 	set clsType = $$sqlgetvalue("select ClassType from %Dictionary.CompiledClass where %Id=?",.sc,name)
 	if clsType="" set clsType="registered"
 	set clsType=$zconvert(clsType,"l")
 	
-	if '$get(%qstruct("clsPersistent")),clsType="persistent" quit ""
-	if '$get(%qstruct("clsSerial")),clsType="serial" quit ""
-	if '$get(%qstruct("clsRegistered")),clsType="registered" quit ""
-	if '$get(%qstruct("clsDatatype")),((clsType="datatype")||(clsType="stream")) quit ""
+	if '%qstruct("clsPersistent"),clsType="persistent" quit ""
+	if '%qstruct("clsSerial"),clsType="serial" quit ""
+	if '%qstruct("clsRegistered"),clsType="registered" quit ""
+	if '%qstruct("clsDatatype"),((clsType="datatype")||(clsType="stream")) quit ""
 	
 	set typeAttrs = $case(clsType,"datatype":$$$DatatypeAttrs,"stream":$$$DatatypeAttrs,"registered":$$$RegisteredAttrs,"serial":$$$SerialAttrs,"persistent":$$$PersistentAttrs,:"")
 	set attrs = $select(attrs="":typeAttrs,1:attrs_" "_typeAttrs)
@@ -311,7 +321,7 @@ node(name,attrs="")
 	set %nodes(idx)=$listbuild(name,attrs)
 	
 	set %nameIdx(name)=idx
-	$$$Queue(name)
+	$$$Queue($lb(name,depth))
 	quit idx
 }
 link(n1,n2,attrs="")
