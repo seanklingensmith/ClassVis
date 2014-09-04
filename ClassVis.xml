@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Export generator="Cache" version="25" zv="Cache for UNIX (Apple Mac OS X for x86-64) 2015.1 (Build 224U)" ts="2014-09-03 10:48:33">
-<Routine name="ClassVis" type="MAC" languagemode="0" timestamp="63433,38909.280638"><![CDATA[
+<Export generator="Cache" version="25" zv="Cache for UNIX (Apple Mac OS X for x86-64) 2015.1 (Build 224U)" ts="2014-09-04 11:12:59">
+<Routine name="ClassVis" type="MAC" languagemode="0" timestamp="63434,40200.828308"><![CDATA[
 ClassVis
 	quit
 
@@ -8,6 +8,7 @@ ClassVis
 #define Dequeue() %queue($increment(%queue,-1)+1)
 
 #define OriginAttrs "fontcolor=""orange"""
+#define TerminalAttrs "fontcolor=""red"""
 #define PersistentAttrs "color=""blue"""
 #define SerialAttrs "color=""red"""
 #define RegisteredAttrs "color=""purple"""
@@ -300,11 +301,14 @@ node(name,depth,attrs="")
 	set typeAttrs = $case(clsType,"datatype":$$$DatatypeAttrs,"stream":$$$DatatypeAttrs,"registered":$$$RegisteredAttrs,"serial":$$$SerialAttrs,"persistent":$$$PersistentAttrs,:"")
 	set attrs = $select(attrs="":typeAttrs,1:attrs_" "_typeAttrs)
 	
+	if depth=%qstruct("recurse") set attrs=attrs_" "_$$$TerminalAttrs
+	
 	set idx = $increment(%nodes)
 	set %nodes(idx)=$listbuild(name,attrs)
 	
 	set %nameIdx(name)=idx
-	$$$Queue($lb(name,depth))
+	//don't queue nodes whose relations will be excluded
+	if depth'=%qstruct("recurse") $$$Queue($lb(name,depth))
 	quit idx
 }
 link(n1,n2,attrs="")
